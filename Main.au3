@@ -16,7 +16,7 @@
 #include <Array.au3>
 
 Global $g_sVersion = "v1.0"
-Global $g_hMainFrm, $g_cLMenu[4], $g_hLMenuFrm[4], $g_cBtnNext, $g_cBtnBack
+Global $g_hMainFrm, $g_aLMenu[4][2], $g_cBtnNext, $g_cBtnBack
 Global $g_aSIDEItem[8][3]
 
 #Region GUI Design
@@ -27,11 +27,11 @@ $cLMenuBG = GUICtrlCreateLabel("", 0, 0, 210, 500)
 GUICtrlSetBkColor($cLMenuBG, $COLOR_WHITE)
 GUICtrlSetState($cLMenuBG, $GUI_DISABLE)
 $hLogo = GUICtrlCreatePic(@ScriptDir & "\Images\Logo.jpg", 5, 10, 200, 50)
-$g_cLMenu[0] = GUICtrlCreateLabel("Deciding Attack Side", 0, 150, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
-$g_cLMenu[1] = GUICtrlCreateLabel("Making Drop Points", 0, 190, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
-$g_cLMenu[2] = GUICtrlCreateLabel("Troops Dropping", 0, 230, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
-$g_cLMenu[3] = GUICtrlCreateLabel("Generating CSV", 0, 270, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
-setLMenuFontStyle($g_cLMenu)
+$g_aLMenu[0][0] = GUICtrlCreateLabel("Deciding Attack Side", 0, 150, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+$g_aLMenu[1][0] = GUICtrlCreateLabel("Making Drop Points", 0, 190, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+$g_aLMenu[2][0] = GUICtrlCreateLabel("Troops Dropping", 0, 230, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+$g_aLMenu[3][0] = GUICtrlCreateLabel("Generating CSV", 0, 270, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+setLMenuFontStyle($g_aLMenu)
 addVerticalSeparator(210, 0, 500, "0x999999")
 
 ;BottomMenu
@@ -41,11 +41,10 @@ GUICtrlSetState($cBMenuBG, $GUI_DISABLE)
 $g_cBtnNext = GUICtrlCreateButton("Next >", 680, 460, 100, 30)
 $g_cBtnBack = GUICtrlCreateButton("< Back", 550, 460, 100, 30)
 addHorizontalSeparator(210, 450, 590, "0x999999")
-
 GUISetState(@SW_SHOW, $g_hMainFrm)
 
 ;Child GUI (SIDE)
-$g_hLMenuFrm[0] = GUICreate("SIDE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+$g_aLMenu[0][1] = GUICreate("SIDE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
 GUICtrlCreateLabel("Which side do you want to attack from?", 20, 20, 300)
 GUICtrlSetColor(-1, 0x3D3A39)
 GUICtrlSetFont(-1, 13, 500)
@@ -61,20 +60,19 @@ createSIDEInputs("DEStorage.jpg", "Dark Elixir Storage", 330, 210, 5)
 createSIDEInputs("TownHall.jpg", "Town Hall", 330, 280, 6)
 createSIDEInputs("ForceSide.jpg", "Force Side", 330, 350, 7)
 ;GUICtrlSetBkColor(-1, 0xf4cb42)
-
-GUISetState(@SW_SHOW, $g_hLMenuFrm[0])
+GUISetState(@SW_SHOW, $g_aLMenu[0][1])
 
 ;Child GUI (MAKE)
-$g_hLMenuFrm[1] = GUICreate("MAKE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
-GUISetState(@SW_SHOW, $g_hLMenuFrm[1])
+$g_aLMenu[1][1] = GUICreate("MAKE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+GUISetState(@SW_SHOW, $g_aLMenu[1][1])
 
 ;Child GUI (DROP)
-$g_hLMenuFrm[2] = GUICreate("DROP", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
-GUISetState(@SW_SHOW, $g_hLMenuFrm[2])
+$g_aLMenu[2][1] = GUICreate("DROP", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+GUISetState(@SW_SHOW, $g_aLMenu[2][1])
 
 ;Child GUI (DROP)
-$g_hLMenuFrm[3] = GUICreate("CSVGEN", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
-GUISetState(@SW_SHOW, $g_hLMenuFrm[3])
+$g_aLMenu[3][1] = GUICreate("CSVGEN", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+GUISetState(@SW_SHOW, $g_aLMenu[3][1])
 
 LMenuCheck(True, 0)
 #EndRegion GUI Design
@@ -87,44 +85,41 @@ While 1
 			Switch $aGUIMsg[0] ; Now check for the messages for $g_hMainFrm
 				Case $GUI_EVENT_CLOSE
 					Exit
-				Case $g_cLMenu[0] To $g_cLMenu[UBound($g_cLMenu) - 1]
-					For $i = 0 To UBound($g_cLMenu) - 1
-						If $aGUIMsg[0] = $g_cLMenu[$i] Then
-							SwitchChildGUI($i)
-						EndIf
+				Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 1][0]
+					For $i = 0 To UBound($g_aLMenu, 1) - 1
+						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
 					Next
 				Case $g_cBtnNext
-					For $i = 0 To UBound($g_hLMenuFrm) - 1
-						If BitAND(WinGetState($g_hLMenuFrm[$i]), 2) Then
+					For $i = 0 To UBound($g_aLMenu, 1) - 1
+						If BitAND(WinGetState($g_aLMenu[$i][1]), 2) Then
 							Switch $i
 								Case 0
 									For $r = 0 To UBound($g_aSIDEItem, 1) - 1
 										If IsChecked($g_aSIDEItem[$r][1]) Then
 											$g_aSIDEItem[$r][2] = GUICtrlRead($g_aSIDEItem[$r][0])
 										Else
-											ContinueLoop
+											$g_aSIDEItem[$r][2] = ""
 										EndIf
 									Next
 							EndSwitch
 							SwitchChildGUI($i + 1)
+							;_ArrayDisplay($g_aSIDEItem, "$g_aSIDEItem")
 							ExitLoop
 						EndIf
 					Next
 				Case $g_cBtnBack
-					For $i = 0 To UBound($g_hLMenuFrm) - 1
-						If BitAND(WinGetState($g_hLMenuFrm[$i]), 2) Then
+					For $i = 0 To UBound($g_aLMenu, 1) - 1
+						If BitAND(WinGetState($g_aLMenu[$i][1]), 2) Then
 							SwitchChildGUI($i - 1)
 							ExitLoop
 						EndIf
 					Next
 			EndSwitch
-		Case $g_hLMenuFrm[0]
+		Case $g_aLMenu[0][0] ; Child GUI SIDE
 			Switch $aGUIMsg[0]
 				Case $g_aSIDEItem[0][1] To $g_aSIDEItem[UBound($g_aSIDEItem, 1) - 1][1]
 					For $r = 0 To UBound($g_aSIDEItem, 1) - 1
-						If $aGUIMsg[0] = $g_aSIDEItem[$r][1] Then
-							_Enable($g_aSIDEItem[$r][1], $g_aSIDEItem[$r][0])
-						EndIf
+						If $aGUIMsg[0] = $g_aSIDEItem[$r][1] Then _Enable($g_aSIDEItem[$r][1], $g_aSIDEItem[$r][0])
 					Next
 			EndSwitch
 	EndSwitch
@@ -141,38 +136,38 @@ Func setLMenuLblColor($n, $c)
 EndFunc   ;==>setLMenuLblColor
 
 Func setLMenuFontStyle($n)
-	For $i = 0 To 3
-		GUICtrlSetColor($n[$i], 0x454242)
-		GUICtrlSetFont($n[$i], 12, 600)
+	For $i = 0 To UBound($g_aLMenu, 1) - 1
+		GUICtrlSetColor($n[$i][0], 0x454242)
+		GUICtrlSetFont($n[$i][0], 12, 600)
 	Next
 EndFunc   ;==>setLMenuFontStyle
 
 Func LMenuCheck($default, $menuN)
-	For $i = 0 To (UBound($g_cLMenu) - 1)
-		GUISetBkColor($COLOR_WHITE, $g_hLMenuFrm[$i])
+	For $i = 0 To UBound($g_aLMenu, 1) - 1
+		GUISetBkColor($COLOR_WHITE, $g_aLMenu[$i][1])
 		If $default Then
 			If $i = $menuN Then
-				setLMenuLblColor($g_cLMenu[$i], "Selected")
-				GUISetState(@SW_SHOW, $g_hLMenuFrm[$i])
+				setLMenuLblColor($g_aLMenu[$i][0], "Selected")
+				GUISetState(@SW_SHOW, $g_aLMenu[$i][1])
 				GUICtrlSetState($g_cBtnBack, $GUI_HIDE)
 			Else
-				setLMenuLblColor($g_cLMenu[$i], "Default")
-				GUISetState(@SW_HIDE, $g_hLMenuFrm[$i])
+				setLMenuLblColor($g_aLMenu[$i][0], "Default")
+				GUISetState(@SW_HIDE, $g_aLMenu[$i][1])
 			EndIf
 		Else
-			setLMenuLblColor($g_cLMenu[$i], "Default")
-			GUISetState(@SW_HIDE, $g_hLMenuFrm[$i])
+			setLMenuLblColor($g_aLMenu[$i][0], "Default")
+			GUISetState(@SW_HIDE, $g_aLMenu[$i][1])
 		EndIf
 	Next
 EndFunc   ;==>LMenuCheck
 
 Func SwitchChildGUI($i)
 	LMenuCheck(False, 0)
-	GUISetState(@SW_SHOW, $g_hLMenuFrm[$i])
-	setLMenuLblColor($g_cLMenu[$i], "Selected")
-	If BitAND(WinGetState($g_hLMenuFrm[0]), 2) Then
+	GUISetState(@SW_SHOW, $g_aLMenu[$i][1])
+	setLMenuLblColor($g_aLMenu[$i][0], "Selected")
+	If BitAND(WinGetState($g_aLMenu[0][1]), 2) Then
 		GUICtrlSetState($g_cBtnBack, $GUI_HIDE)
-	ElseIf BitAND(WinGetState($g_hLMenuFrm[UBound($g_hLMenuFrm) - 1]), 2) Then
+	ElseIf BitAND(WinGetState($g_aLMenu[UBound($g_aLMenu,1) - 1][1]), 2) Then
 		GUICtrlSetState($g_cBtnNext, $GUI_DISABLE)
 	Else
 		GUICtrlSetState($g_cBtnNext, $GUI_ENABLE)
