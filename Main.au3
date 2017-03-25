@@ -20,7 +20,7 @@ Global $g_hMainFrm, $g_cLMenu[4], $g_hLMenuFrm[4], $g_cBtnNext, $g_cBtnBack
 Global $g_aSIDEItem[8][3]
 
 #Region GUI Design
-$g_hMainFrm = GUICreate("CSV Generator - " & $g_sVersion, 800, 500, -1, -1)
+$g_hMainFrm = GUICreate("CSV Editor - " & $g_sVersion, 800, 500, -1, -1)
 
 ;Left Menu
 $cLMenuBG = GUICtrlCreateLabel("", 0, 0, 210, 500)
@@ -172,7 +172,10 @@ Func SwitchChildGUI($i)
 	setLMenuLblColor($g_cLMenu[$i], "Selected")
 	If BitAND(WinGetState($g_hLMenuFrm[0]), 2) Then
 		GUICtrlSetState($g_cBtnBack, $GUI_HIDE)
+	ElseIf BitAND(WinGetState($g_hLMenuFrm[UBound($g_hLMenuFrm) - 1]), 2) Then
+		GUICtrlSetState($g_cBtnNext, $GUI_DISABLE)
 	Else
+		GUICtrlSetState($g_cBtnNext, $GUI_ENABLE)
 		GUICtrlSetState($g_cBtnBack, $GUI_SHOW)
 	EndIf
 EndFunc   ;==>SwitchChildGUI
