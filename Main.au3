@@ -13,10 +13,11 @@
 #include <WindowsConstants.au3>
 #include <StaticConstants.au3>
 #include <ButtonConstants.au3>
+#include <Array.au3>
 
 Global $g_sVersion = "v1.0"
 Global $g_hMainFrm, $g_cLMenu[4], $g_hLMenuFrm[4], $g_cBtnNext, $g_cBtnBack
-Global $g_aSIDEItem[2][8]
+Global $g_aSIDEItem[8][3]
 
 #Region GUI Design
 $g_hMainFrm = GUICreate("CSV Generator - " & $g_sVersion, 800, 500, -1, -1)
@@ -51,15 +52,14 @@ GUICtrlSetFont(-1, 13, 500)
 GUICtrlCreateLabel("Please select and rank from 1 to 10 the most important thing for you when deciding which side to attack from.", 30, 50, 550, 35)
 GUICtrlSetColor(-1, 0x3D3A39)
 GUICtrlSetFont(-1, 10, 400)
-;GUICtrlSetBkColor($hlblSideSub, 0xf4cb42)
 createSIDEInputs("GoldMine.jpg", "Gold Mine", 50, 140, 0)
 createSIDEInputs("ElixirCollector.jpg", "Elixir Collector", 50, 210, 1)
 createSIDEInputs("DEDrill.jpg", "Dark Elixir Drill", 50, 280, 2)
 createSIDEInputs("GoldStorage.jpg", "Gold Storage", 50, 350, 3)
 createSIDEInputs("ElixirStorage.jpg", "Elixir Storage", 330, 140, 4)
-createSIDEInputs("DEStorage.jpg", "Dark Elixir Storage", 330, 210, 4)
-createSIDEInputs("TownHall.jpg", "Town Hall", 330, 280, 4)
-createSIDEInputs("ForceSide.jpg", "Force Side", 330, 350, 4)
+createSIDEInputs("DEStorage.jpg", "Dark Elixir Storage", 330, 210, 5)
+createSIDEInputs("TownHall.jpg", "Town Hall", 330, 280, 6)
+createSIDEInputs("ForceSide.jpg", "Force Side", 330, 350, 7)
 ;GUICtrlSetBkColor(-1, 0xf4cb42)
 
 GUISetState(@SW_SHOW, $g_hLMenuFrm[0])
@@ -96,6 +96,16 @@ While 1
 				Case $g_cBtnNext
 					For $i = 0 To UBound($g_hLMenuFrm) - 1
 						If BitAND(WinGetState($g_hLMenuFrm[$i]), 2) Then
+							Switch $i
+								Case 0
+									For $r = 0 To UBound($g_aSIDEItem, 1) - 1
+										If IsChecked($g_aSIDEItem[$r][1]) Then
+											$g_aSIDEItem[$r][2] = GUICtrlRead($g_aSIDEItem[$r][0])
+										Else
+											ContinueLoop
+										EndIf
+									Next
+							EndSwitch
 							SwitchChildGUI($i + 1)
 							ExitLoop
 						EndIf
@@ -109,11 +119,14 @@ While 1
 					Next
 			EndSwitch
 		Case $g_hLMenuFrm[0]
-			For $r = 0 To UBound($g_aSIDEItem, 2) - 1
-				If $aGUIMsg[0] = $g_aSIDEItem[1][$r] Then
-					_Enable($g_aSIDEItem[1][$r], $g_aSIDEItem[0][$r])
-				EndIf
-			Next
+			Switch $aGUIMsg[0]
+				Case $g_aSIDEItem[0][1] To $g_aSIDEItem[UBound($g_aSIDEItem, 1) - 1][1]
+					For $r = 0 To UBound($g_aSIDEItem, 1) - 1
+						If $aGUIMsg[0] = $g_aSIDEItem[$r][1] Then
+							_Enable($g_aSIDEItem[$r][1], $g_aSIDEItem[$r][0])
+						EndIf
+					Next
+			EndSwitch
 	EndSwitch
 WEnd
 
@@ -162,7 +175,7 @@ Func SwitchChildGUI($i)
 	Else
 		GUICtrlSetState($g_cBtnBack, $GUI_SHOW)
 	EndIf
-EndFunc
+EndFunc   ;==>SwitchChildGUI
 
 Func addVerticalSeparator($x, $y, $h, $c)
 	GUICtrlCreateLabel("", $x, $y, 1, $h)
@@ -176,20 +189,24 @@ EndFunc   ;==>addHorizontalSeparator
 #EndRegion Main GUI Functions
 
 #Region Child GUI (SIDE) Functions
+Func IsChecked($control)
+	Return BitAND(GUICtrlRead($control), $GUI_CHECKED) = $GUI_CHECKED
+EndFunc   ;==>IsChecked
+
 Func _Enable($check, $input)
-    IF GUICtrlRead($check) = 1 Then
-        GUICtrlSetstate($input, $GUI_ENABLE)
-    Else
-        GUICtrlSetstate($input, $GUI_DISABLE)
-    EndIf
-EndFunc
+	If GUICtrlRead($check) = 1 Then
+		GUICtrlSetState($input, $GUI_ENABLE)
+	Else
+		GUICtrlSetState($input, $GUI_DISABLE)
+	EndIf
+EndFunc   ;==>_Enable
 
 Func createSIDEInputs($img, $s, $x, $y, $ar)
 	GUICtrlCreatePic(@ScriptDir & "\Images\" & $img, $x, $y, 50, 50)
 	GUICtrlCreateLabel($s & ":", $x + 60, $y + 10, 100, 15)
-	$g_aSIDEItem[0][$ar] = GUICtrlCreateInput("", $x + 60, $y + 25, 100, 20)
+	$g_aSIDEItem[$ar][0] = GUICtrlCreateInput("", $x + 60, $y + 25, 100, 20)
 	GUICtrlSetFont(-1, 9, 400)
-	$g_aSIDEItem[1][$ar] = GUICtrlCreateCheckbox("", $x + 165, $y + 25, 20, 20)
-	GUICtrlSetState($g_aSIDEItem[0][$ar], $GUI_DISABLE)
+	$g_aSIDEItem[$ar][1] = GUICtrlCreateCheckbox("", $x + 165, $y + 25, 20, 20)
+	GUICtrlSetState($g_aSIDEItem[$ar][0], $GUI_DISABLE)
 EndFunc   ;==>createSIDEInputs
 #EndRegion Child GUI (SIDE) Functions
