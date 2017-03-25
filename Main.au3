@@ -77,7 +77,7 @@ GUISetState(@SW_SHOW, $g_aLMenu[3][1])
 LMenuCheck(True, 0)
 #EndRegion GUI Design
 
-
+#Region Main Loop
 While 1
 	$aGUIMsg = GUIGetMsg(1) ; Use advanced parameter to get array
 	Switch $aGUIMsg[1] ; check which GUI sent the message
@@ -90,30 +90,9 @@ While 1
 						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
 					Next
 				Case $g_cBtnNext
-					For $i = 0 To UBound($g_aLMenu, 1) - 1
-						If BitAND(WinGetState($g_aLMenu[$i][1]), 2) Then
-							Switch $i
-								Case 0
-									For $r = 0 To UBound($g_aSIDEItem, 1) - 1
-										If IsChecked($g_aSIDEItem[$r][1]) Then
-											$g_aSIDEItem[$r][2] = GUICtrlRead($g_aSIDEItem[$r][0])
-										Else
-											$g_aSIDEItem[$r][2] = ""
-										EndIf
-									Next
-							EndSwitch
-							SwitchChildGUI($i + 1)
-							;_ArrayDisplay($g_aSIDEItem, "$g_aSIDEItem")
-							ExitLoop
-						EndIf
-					Next
+					BtnNextPressed()
 				Case $g_cBtnBack
-					For $i = 0 To UBound($g_aLMenu, 1) - 1
-						If BitAND(WinGetState($g_aLMenu[$i][1]), 2) Then
-							SwitchChildGUI($i - 1)
-							ExitLoop
-						EndIf
-					Next
+					BtnBackPressed()
 			EndSwitch
 		Case $g_aLMenu[0][0] ; Child GUI SIDE
 			Switch $aGUIMsg[0]
@@ -124,6 +103,7 @@ While 1
 			EndSwitch
 	EndSwitch
 WEnd
+#EndRegion
 
 #Region Main GUI Functions
 Func setLMenuLblColor($n, $c)
@@ -167,7 +147,7 @@ Func SwitchChildGUI($i)
 	setLMenuLblColor($g_aLMenu[$i][0], "Selected")
 	If BitAND(WinGetState($g_aLMenu[0][1]), 2) Then
 		GUICtrlSetState($g_cBtnBack, $GUI_HIDE)
-	ElseIf BitAND(WinGetState($g_aLMenu[UBound($g_aLMenu,1) - 1][1]), 2) Then
+	ElseIf BitAND(WinGetState($g_aLMenu[UBound($g_aLMenu, 1) - 1][1]), 2) Then
 		GUICtrlSetState($g_cBtnNext, $GUI_DISABLE)
 	Else
 		GUICtrlSetState($g_cBtnNext, $GUI_ENABLE)
@@ -184,6 +164,35 @@ Func addHorizontalSeparator($x, $y, $w, $c)
 	GUICtrlCreateLabel("", $x, $y, $w, 1)
 	GUICtrlSetBkColor(-1, $c)
 EndFunc   ;==>addHorizontalSeparator
+
+Func BtnNextPressed()
+	For $i = 0 To UBound($g_aLMenu, 1) - 1
+		If BitAND(WinGetState($g_aLMenu[$i][1]), 2) Then
+			Switch $i
+				Case 0
+					For $r = 0 To UBound($g_aSIDEItem, 1) - 1
+						If IsChecked($g_aSIDEItem[$r][1]) Then
+							$g_aSIDEItem[$r][2] = GUICtrlRead($g_aSIDEItem[$r][0])
+						Else
+							$g_aSIDEItem[$r][2] = ""
+						EndIf
+					Next
+			EndSwitch
+			SwitchChildGUI($i + 1)
+			;_ArrayDisplay($g_aSIDEItem, "$g_aSIDEItem")
+			ExitLoop
+		EndIf
+	Next
+EndFunc   ;==>BtnNextPressed
+
+Func BtnBackPressed()
+	For $i = 0 To UBound($g_aLMenu, 1) - 1
+		If BitAND(WinGetState($g_aLMenu[$i][1]), 2) Then
+			SwitchChildGUI($i - 1)
+			ExitLoop
+		EndIf
+	Next
+EndFunc   ;==>BtnBackPressed
 #EndRegion Main GUI Functions
 
 #Region Child GUI (SIDE) Functions
