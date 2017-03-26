@@ -19,9 +19,25 @@
 
 #cs
 	All array elements detail:
-	$g_aLMenu - Array contain the left menu labels and child GUI that go with it
+	$g_aLMenu[4][2] - This array contain the left menu labels and child GUI that go with it
 	$g_aLMenu[x][0] - Labels
-	$g_aLMenu[x][0] - Child GUI
+	$g_aLMenu[x][1] - Child GUIs
+
+	g_aSIDEItem[8][3] - This array contain inputbox, checkbox and data read from inputbox
+	g_aSIDEItem[x][0] - InputBoxes
+	g_aSIDEItem[x][1] - CheckBoxes
+	g_aSIDEItem[x][2] - Data read from Input if Checkboxes are checked
+
+	$g_aMAKEInputs[7] - This array contain inputbox and combobox GUI elements of MAKE GUI
+
+	$aMAKEList[1][7] - This array unknown size 2D array contain all vector's infos created by user in MAKE GUI
+	$aMAKEList[x][0] - Vector name
+	$aMAKEList[x][1] - Side
+	$aMAKEList[x][2] - Drop points
+	$aMAKEList[x][3] - Add tiles
+	$aMAKEList[x][4] - Direction
+	$aMAKEList[x][5] - Random X
+	$aMAKEList[x][6] - Random Y
 #ce
 
 Global $g_sVersion = "v1.0"
@@ -117,8 +133,9 @@ While 1
 				Case $GUI_EVENT_CLOSE
 					Exit
 
-				Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 1][0]
-					For $i = 0 To UBound($g_aLMenu, 1) - 1
+				; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
+				Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
+					For $i = 0 To UBound($g_aLMenu, 1) - 2
 						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
 					Next
 
@@ -130,6 +147,7 @@ While 1
 			EndSwitch
 		Case $g_aLMenu[0][1] ; Child GUI SIDE
 			Switch $aGUIMsg[0]
+				; Checking if user click on one of the checkbox in SIDE GUI --> enable respective inputbox
 				Case $g_aSIDEItem[0][1] To $g_aSIDEItem[UBound($g_aSIDEItem, 1) - 1][1]
 					For $r = 0 To UBound($g_aSIDEItem, 1) - 1
 						If $aGUIMsg[0] = $g_aSIDEItem[$r][1] Then _Enable($g_aSIDEItem[$r][1], $g_aSIDEItem[$r][0])
@@ -138,6 +156,7 @@ While 1
 		Case $g_aLMenu[1][1] ; Child GUI MAKE
 			If Not @error Then
 				Select
+					; These $aCursorInfo[4] cases are to check if the user hover on one of the buttons in MAKE GUI --> change button img
 					Case $aCursorInfo[4] = $g_cMAKEBtnAdd And $gBtnAddUnderCursor = False
 						GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_2.jpg")
 						$gBtnAddUnderCursor = True
@@ -156,6 +175,7 @@ While 1
 
 					Case $aGUIMsg[0] = $g_cMAKEBtnAdd
 						AddMAKE()
+
 					Case $aGUIMsg[0] = $g_cMAKEBtnDel
 						DelMAKE()
 				EndSelect
@@ -166,7 +186,7 @@ WEnd
 #EndRegion Main Loop
 
 #Region Main GUI Functions
-Func setLMenuLblColor($n, $c)
+Func setLMenuLblColor($n, $c) ;This function is for setting the Left Menu labels BG color
 	Switch $c
 		Case "Default"
 			GUICtrlSetBkColor($n, $COLOR_WHITE)
@@ -175,14 +195,14 @@ Func setLMenuLblColor($n, $c)
 	EndSwitch
 EndFunc   ;==>setLMenuLblColor
 
-Func setLMenuFontStyle($n)
+Func setLMenuFontStyle($n) ;This function is for setting the Left Menu labels font styles (size and color)
 	For $i = 0 To UBound($g_aLMenu, 1) - 1
 		GUICtrlSetColor($n[$i][0], 0x454242)
 		GUICtrlSetFont($n[$i][0], 12, 600)
 	Next
 EndFunc   ;==>setLMenuFontStyle
 
-Func LMenuCheck($default, $menuN)
+Func LMenuCheck($default, $menuN) ;This function is for setting Left Menu default GUI when user 1st open the program. Also use to HIDE child GUI that is not selected
 	For $i = 0 To UBound($g_aLMenu, 1) - 1
 		GUISetBkColor($COLOR_WHITE, $g_aLMenu[$i][1])
 		If $default Then
@@ -201,7 +221,7 @@ Func LMenuCheck($default, $menuN)
 	Next
 EndFunc   ;==>LMenuCheck
 
-Func SwitchChildGUI($i)
+Func SwitchChildGUI($i) ;This function is for switching between child GUI and to check which GUI suppose to have Next or Back button
 	LMenuCheck(False, 0)
 	GUISetState(@SW_SHOW, $g_aLMenu[$i][1])
 	setLMenuLblColor($g_aLMenu[$i][0], "Selected")
