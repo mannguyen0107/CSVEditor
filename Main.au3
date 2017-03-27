@@ -16,6 +16,7 @@
 #include <Array.au3>
 #include <GuiListView.au3>
 #include <ComboConstants.au3>
+#include <EditConstants.au3>
 
 #cs
 	All array elements detail:
@@ -41,8 +42,8 @@
 #ce
 
 Global $g_sVersion = "v1.0"
-Global $g_aLMenu[4][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7] ; All global array
-Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel ; All global GUI elements
+Global $g_aLMenu[5][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7] ; All global array
+Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath ; All global GUI elements
 Global $gBtnAddUnderCursor = False, $gBtnDelUnderCursor = False, $g_iMAKEListItem = 0 ; All global variables
 Dim $aMAKEList[1][7]
 
@@ -54,10 +55,11 @@ $cLMenuBG = GUICtrlCreateLabel("", 0, 0, 210, 500)
 GUICtrlSetBkColor($cLMenuBG, $COLOR_WHITE)
 GUICtrlSetState($cLMenuBG, $GUI_DISABLE)
 $hLogo = GUICtrlCreatePic(@ScriptDir & "\Images\Logo.jpg", 5, 10, 200, 100)
-$g_aLMenu[0][0] = GUICtrlCreateLabel("Deciding Attack Side", 0, 180, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
-$g_aLMenu[1][0] = GUICtrlCreateLabel("Making Drop Points", 0, 220, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
-$g_aLMenu[2][0] = GUICtrlCreateLabel("Troops Dropping", 0, 260, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
-$g_aLMenu[3][0] = GUICtrlCreateLabel("Generating CSV", 0, 300, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+$g_aLMenu[0][0] = GUICtrlCreateLabel("Welcome", 0, 180, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+$g_aLMenu[1][0] = GUICtrlCreateLabel("Deciding Attack Side", 0, 220, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+$g_aLMenu[2][0] = GUICtrlCreateLabel("Making Drop Points", 0, 260, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+$g_aLMenu[3][0] = GUICtrlCreateLabel("Troops Dropping", 0, 300, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
+$g_aLMenu[4][0] = GUICtrlCreateLabel("Generating CSV", 0, 340, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
 setLMenuFontStyle($g_aLMenu)
 addVerticalSeparator(210, 0, 500, "0x999999")
 
@@ -72,8 +74,20 @@ setBtnStyle($g_cBtnBack, 0x767676, 10)
 addHorizontalSeparator(210, 450, 590, 0x999999)
 GUISetState(@SW_SHOW, $g_hMainFrm)
 
+;Child GUI (Welcome)
+$g_aLMenu[0][1] = GUICreate("CSVGEN", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+createHeading("Let's make botting great again!")
+createSubHeading("Before get started please select where you want to save your CSV and make some note about your CSV. For example, putting in your name, your CSV's version or troops, spells and CC troops required.")
+GUICtrlCreatePic(@ScriptDir & "\Images\SaveIcon.jpg", 50, 150, 20, 20)
+$g_hSavePath = GUICtrlCreateInput(@ScriptDir & "Untitled.csv", 85, 150, 380, 20)
+$hEditSavePath = GUICtrlCreateButton("Edit", 475, 150, 60, 21)
+setBtnStyle($hEditSavePath, 0x767676, 9)
+GUICtrlSetState($g_hSavePath, $GUI_DISABLE)
+$g_hNoteEdit = GUICtrlCreateEdit("", 50, 200, 200, 220)
+GUISetState(@SW_SHOW, $g_aLMenu[0][1])
+
 ;Child GUI (SIDE)
-$g_aLMenu[0][1] = GUICreate("SIDE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+$g_aLMenu[1][1] = GUICreate("SIDE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
 createHeading("Which side do you want to attack from?")
 createSubHeading("Please select and rank from 1 to 10 the most important thing for you when deciding which side to attack from.")
 createSIDEInputs("GoldMine.jpg", "Gold Mine", 60, 130, 0)
@@ -85,10 +99,10 @@ createSIDEInputs("DEStorage.jpg", "Dark Elixir Storage", 340, 200, 5)
 createSIDEInputs("TownHall.jpg", "Town Hall", 340, 270, 6)
 createSIDEInputs("ForceSide.jpg", "Force Side", 340, 340, 7)
 ;GUICtrlSetBkColor(-1, 0xf4cb42)
-GUISetState(@SW_SHOW, $g_aLMenu[0][1])
+GUISetState(@SW_SHOW, $g_aLMenu[1][1])
 
 ;Child GUI (MAKE)
-$g_aLMenu[1][1] = GUICreate("MAKE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+$g_aLMenu[2][1] = GUICreate("MAKE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
 createHeading("Making drop points")
 createSubHeading("Now we will be create drop points so that MBR knows where it should drop your troops.")
 ;createListView("MAKE", $g_cMAKEListView, 210)
@@ -106,19 +120,19 @@ $g_cMAKEBtnAdd = GUICtrlCreatePic("", 320, 415, 0, 0)
 GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_1.jpg")
 $g_cMAKEBtnDel = GUICtrlCreatePic("", 440, 415, 0, 0)
 GUICtrlSetImage($g_cMAKEBtnDel, @ScriptDir & "\Images\BtnDel_1.jpg")
-GUISetState(@SW_SHOW, $g_aLMenu[1][1])
+GUISetState(@SW_SHOW, $g_aLMenu[2][1])
 
 ;Child GUI (DROP)
-$g_aLMenu[2][1] = GUICreate("DROP", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+$g_aLMenu[3][1] = GUICreate("DROP", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
 createHeading("Where do you want to drop your troops?")
 createSubHeading("From all of the vectors we have just created you can use them to drop your troops in.")
 createListView("DROP", $g_cMAKEListView, 210)
 
-GUISetState(@SW_SHOW, $g_aLMenu[2][1])
-
-;Child GUI (DROP)
-$g_aLMenu[3][1] = GUICreate("CSVGEN", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
 GUISetState(@SW_SHOW, $g_aLMenu[3][1])
+
+;Child GUI (CSV Generating)
+$g_aLMenu[4][1] = GUICreate("CSVGEN", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+GUISetState(@SW_SHOW, $g_aLMenu[4][1])
 
 LMenuCheck(True, 0)
 #EndRegion GUI Design
@@ -145,7 +159,7 @@ While 1
 				Case $g_cBtnBack
 					BtnBackPressed()
 			EndSwitch
-		Case $g_aLMenu[0][1] ; Child GUI SIDE
+		Case $g_aLMenu[1][1] ; Child GUI SIDE
 			Switch $aGUIMsg[0]
 				; Checking if user click on one of the checkbox in SIDE GUI --> enable respective inputbox
 				Case $g_aSIDEItem[0][1] To $g_aSIDEItem[UBound($g_aSIDEItem, 1) - 1][1]
@@ -153,7 +167,7 @@ While 1
 						If $aGUIMsg[0] = $g_aSIDEItem[$r][1] Then _Enable($g_aSIDEItem[$r][1], $g_aSIDEItem[$r][0])
 					Next
 			EndSwitch
-		Case $g_aLMenu[1][1] ; Child GUI MAKE
+		Case $g_aLMenu[2][1] ; Child GUI MAKE
 			If Not @error Then
 				Select
 					; These $aCursorInfo[4] cases are to check if the user hover on one of the buttons in MAKE GUI --> change button img
@@ -411,7 +425,7 @@ Func createHeading($txt)
 EndFunc   ;==>createHeading
 
 Func createSubHeading($txt)
-	GUICtrlCreateLabel($txt, 30, 50, 550, 35)
+	GUICtrlCreateLabel($txt, 30, 50, 540, 50)
 	GUICtrlSetColor(-1, 0x3D3A39)
 	GUICtrlSetFont(-1, 10, 400)
 EndFunc   ;==>createSubHeading
