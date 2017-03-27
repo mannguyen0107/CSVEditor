@@ -1,6 +1,6 @@
 ;#AutoIt3Wrapper_Change2CUI=y
 ;#pragma compile(Console, true)
-#pragma compile(Icon, "Images\csvedit.ico")
+#pragma compile(Icon, "Images\csveditor.ico")
 #pragma compile(FileDescription, MBR CSV Editor - https://mybot.run)
 #pragma compile(ProductName, CSV Editor)
 #pragma compile(ProductVersion, 1.0)
@@ -17,6 +17,7 @@
 #include <GuiListView.au3>
 #include <ComboConstants.au3>
 #include <EditConstants.au3>
+#include <FontConstants.au3>
 
 #cs
 	All array elements detail:
@@ -31,7 +32,7 @@
 
 	$g_aMAKEInputs[7] - This array contain inputbox and combobox GUI elements of MAKE GUI
 
-	$aMAKEList[1][7] - This array unknown size 2D array contain all vector's infos created by user in MAKE GUI
+	$aMAKEList[1][7] - This array is an unknown size 2D array (as we don't know how many vector the user will create so the size will increase as the user create more and more vectors) contain all vector's infos created by user in MAKE GUI
 	$aMAKEList[x][0] - Vector name
 	$aMAKEList[x][1] - Side
 	$aMAKEList[x][2] - Drop points
@@ -54,7 +55,7 @@ $g_hMainFrm = GUICreate("CSV Editor - " & $g_sVersion, 800, 500, -1, -1)
 $cLMenuBG = GUICtrlCreateLabel("", 0, 0, 210, 500)
 GUICtrlSetBkColor($cLMenuBG, $COLOR_WHITE)
 GUICtrlSetState($cLMenuBG, $GUI_DISABLE)
-$hLogo = GUICtrlCreatePic(@ScriptDir & "\Images\Logo.jpg", 5, 10, 200, 100)
+GUICtrlCreatePic(@ScriptDir & "\Images\Logo.jpg", 5, 10, 200, 100)
 $g_aLMenu[0][0] = GUICtrlCreateLabel("Welcome", 0, 180, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
 $g_aLMenu[1][0] = GUICtrlCreateLabel("Deciding Attack Side", 0, 220, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
 $g_aLMenu[2][0] = GUICtrlCreateLabel("Making Drop Points", 0, 260, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
@@ -79,11 +80,14 @@ $g_aLMenu[0][1] = GUICreate("CSVGEN", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHI
 createHeading("Let's make botting great again!")
 createSubHeading("Before get started please select where you want to save your CSV and make some note about your CSV. For example, putting in your name, your CSV's version or troops, spells and CC troops required.")
 GUICtrlCreatePic(@ScriptDir & "\Images\SaveIcon.jpg", 50, 150, 20, 20)
-$g_hSavePath = GUICtrlCreateInput(@ScriptDir & "Untitled.csv", 85, 150, 380, 20)
+$g_hSavePath = GUICtrlCreateInput(@ScriptDir & "\Untitled.csv", 85, 150, 380, 20)
 $hEditSavePath = GUICtrlCreateButton("Edit", 475, 150, 60, 21)
 setBtnStyle($hEditSavePath, 0x767676, 9)
 GUICtrlSetState($g_hSavePath, $GUI_DISABLE)
-$g_hNoteEdit = GUICtrlCreateEdit("", 50, 200, 200, 220)
+GUICtrlCreateLabel("NOTE", 145, 195, 50, 20)
+GUICtrlSetFont(-1, 12, 500, $GUI_FONTUNDER)
+$g_hNoteEdit = GUICtrlCreateEdit("", 70, 220, 200, 200)
+GUICtrlCreatePic(@ScriptDir & "\Images\BarbKing.jpg", 300, 190, 277, 250)
 GUISetState(@SW_SHOW, $g_aLMenu[0][1])
 
 ;Child GUI (SIDE)
