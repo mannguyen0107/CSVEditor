@@ -32,21 +32,21 @@
 
 	$g_aMAKEInputs[7] - This array contain inputbox and combobox GUI elements of MAKE GUI
 
-	$g_aMAKEList[1][7] - This array is an unknown size 2D array (as we don't know how many vector the user will create so the size will increase as the user create more and more vectors) contain all vector's infos created by user in MAKE GUI
-	$g_aMAKEList[x][0] - Vector name
-	$g_aMAKEList[x][1] - Side
-	$g_aMAKEList[x][2] - Drop points
-	$g_aMAKEList[x][3] - Add tiles
-	$g_aMAKEList[x][4] - Direction
-	$g_aMAKEList[x][5] - Random X
-	$g_aMAKEList[x][6] - Random Y
+	$aMAKEList[1][7] - This array is an unknown size 2D array (as we don't know how many vector the user will create so the size will increase as the user create more and more vectors) contain all vector's infos created by user in MAKE GUI
+	$aMAKEList[x][0] - Vector name
+	$aMAKEList[x][1] - Side
+	$aMAKEList[x][2] - Drop points
+	$aMAKEList[x][3] - Add tiles
+	$aMAKEList[x][4] - Direction
+	$aMAKEList[x][5] - Random X
+	$aMAKEList[x][6] - Random Y
 #ce
 
 Global $g_sVersion = "v1.0"
 Global $g_aLMenu[5][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7], $g_aDROPInputs[7] ; All global array
 Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_aNOTE[1], $g_sSaveLocation, $g_cDROPListView ; All global Main GUI elements
 Global $gBtnAddUnderCursor = False, $gBtnDelUnderCursor = False, $g_iMAKEListItem = 0 ; All global variables
-Dim $g_aMAKEList[1][7], $g_aDROPList[1][7]
+Dim $aMAKEList[1][7]
 
 #Region GUI Design
 $g_hMainFrm = GUICreate("CSV Editor - " & $g_sVersion, 800, 500, -1, -1)
@@ -113,13 +113,13 @@ createSubHeading("Now we will be create drop points so that MBR knows where it s
 $g_cMAKEListView = GUICtrlCreateListView("Vector|Drop Side|Drop Points|Add Tiles|Direction|Random X|Random Y", 20, 90, 550, 210)
 setListViewSize("MAKE", $g_cMAKEListView)
 ControlDisable($g_aLMenu[1][1], "", HWnd(_GUICtrlListView_GetHeader($g_cMAKEListView)))
-createVectorInputs("Vector Name", 40, 320, 85, 0, "Input", "MAKE")
-createVectorInputs("Drop Side", 40, 350, 85, 1, "List", "MAKE", "FRONT-RIGHT|FRONT-LEFT|LEFT-FRONT|LEFT-BACK|BACK-LEFT|BACK-RIGHT|RIGHT-BACK|RIGHT-FRONT")
-createVectorInputs("Drop Points", 40, 380, 85, 2, "Input", "MAKE")
-createVectorInputs("Add Tiles", 40, 410, 85, 3, "Input", "MAKE")
-createVectorInputs("Drop Direction", 320, 320, 100, 4, "List", "MAKE", "INT-EXT|EXT-INT")
-createVectorInputs("Random X-Axis", 320, 350, 100, 5, "Input", "MAKE")
-createVectorInputs("Random Y-Axis", 320, 380, 100, 6, "Input", "MAKE")
+createMAKEInputs("Vector Name", 40, 320, 85, 0, "Input")
+createMAKEInputs("Drop Side", 40, 350, 85, 1, "List", "FRONT-RIGHT|FRONT-LEFT|LEFT-FRONT|LEFT-BACK|BACK-LEFT|BACK-RIGHT|RIGHT-BACK|RIGHT-FRONT")
+createMAKEInputs("Drop Points", 40, 380, 85, 2, "Input")
+createMAKEInputs("Add Tiles", 40, 410, 85, 3, "Input")
+createMAKEInputs("Drop Direction", 320, 320, 100, 4, "List", "INT-EXT|EXT-INT")
+createMAKEInputs("Random X-Axis", 320, 350, 100, 5, "Input")
+createMAKEInputs("Random Y-Axis", 320, 380, 100, 6, "Input")
 $g_cMAKEBtnAdd = GUICtrlCreatePic("", 320, 415, 0, 0)
 GUICtrlSetImage($g_cMAKEBtnAdd, @ScriptDir & "\Images\BtnAdd_1.jpg")
 $g_cMAKEBtnDel = GUICtrlCreatePic("", 440, 415, 0, 0)
@@ -133,13 +133,6 @@ createSubHeading("From all of the vectors we have just created you can use them 
 $g_cDROPListView = GUICtrlCreateListView("Vector|Index|Drop Quantity|Troop Name|Delay Drop|Delay Change|Sleep After", 20, 90, 550, 210, $LVS_SORTASCENDING)
 setListViewSize("DROP", $g_cDROPListView)
 ControlDisable($g_aLMenu[3][1], "", HWnd(_GUICtrlListView_GetHeader($g_cDROPListView)))
-createVectorInputs("Vector Name", 40, 320, 85, 0, "List", "DROP")
-createVectorInputs("Drop Index", 40, 350, 85, 1, "Input", "DROP")
-createVectorInputs("Drop Quantity", 40, 380, 85, 2, "Input", "DROP")
-createVectorInputs("Troop Name", 40, 410, 85, 3, "Input", "DROP")
-createVectorInputs("Delay Drop", 320, 320, 100, 4, "Input", "DROP")
-createVectorInputs("Delay Change", 320, 350, 100, 5, "Input", "DROP")
-createVectorInputs("Sleep After", 320, 380, 100, 6, "Input", "DROP")
 GUISetState(@SW_SHOW, $g_aLMenu[3][1])
 
 ;Child GUI (CSV Generating)
@@ -159,13 +152,11 @@ While 1
 				Case $GUI_EVENT_CLOSE
 					Exit
 
-				#cs
 				; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
 				Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
 					For $i = 0 To UBound($g_aLMenu, 1) - 2
 						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
 					Next
-				#ce
 
 				Case $g_cBtnNext
 					BtnNextPressed()
@@ -295,10 +286,6 @@ Func BtnNextPressed()
 							$g_aSIDEItem[$r][2] = ""
 						EndIf
 					Next
-				Case 2
-					For $1 = 0 To UBound($g_aMAKEList) - 1
-						GUICtrlSetData($g_aDROPInputs[0], $g_aMAKEList[$1][0])
-					Next
 			EndSwitch
 			SwitchChildGUI($i + 1)
 			;_ArrayDisplay($g_aSIDEItem, "$g_aSIDEItem")
@@ -384,7 +371,7 @@ Func setListViewSize($name, $var)
 	Next
 EndFunc   ;==>setListViewSize
 
-Func createVectorInputs($txt, $x, $y, $w, $ar, $field, $GUIname, $list = "")
+Func createMAKEInputs($txt, $x, $y, $w, $ar, $field, $GUIname, $list = "")
 	GUICtrlCreateLabel($txt & ":", $x, $y, $w, 20)
 	GUICtrlSetFont(-1, 10, 400)
 	Switch $field
@@ -396,39 +383,36 @@ Func createVectorInputs($txt, $x, $y, $w, $ar, $field, $GUIname, $list = "")
 					$g_aDROPInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20, $ES_UPPERCASE)
 			EndSwitch
 		Case "List"
-			Local $aSplit = StringSplit($list, "|")
 			Switch $GUIname
 				Case "MAKE"
-					$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
-					For $i = 1 To $aSplit[0]
-						GUICtrlSetData($g_aMAKEInputs[$ar], $aSplit[$i])
-					Next
+					Local $aSplit = StringSplit($list, "|")
+			$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
+			For $i = 1 To $aSplit[0]
+				GUICtrlSetData($g_aMAKEInputs[$ar], $aSplit[$i])
+			Next
 				Case "DROP"
-					$g_aDROPInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
-					For $i = 1 To $aSplit[0]
-						GUICtrlSetData($g_aDROPInputs[$ar], $aSplit[$i])
-					Next
+					$g_aDROPInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20, $ES_UPPERCASE)
 			EndSwitch
 	EndSwitch
-EndFunc   ;==>createVectorInputs
+EndFunc   ;==>createMAKEInputs
 
 Func AddMAKE()
 	Local $aTempReadInputs[7]
 	For $i = 0 To UBound($aTempReadInputs) - 1
 		$aTempReadInputs[$i] = GUICtrlRead($g_aMAKEInputs[$i])
 	Next
-	Local $iSearchDuplicate = _ArraySearch($g_aMAKEList, $aTempReadInputs[0], 0, 0, 0, 0, 1, 0)
+	Local $iSearchDuplicate = _ArraySearch($aMAKEList, $aTempReadInputs[0], 0, 0, 0, 0, 1, 0)
 	If $aTempReadInputs[0] = "" Or $aTempReadInputs[1] = "" Or $aTempReadInputs[2] = "" Or $aTempReadInputs[3] = "" Or $aTempReadInputs[4] = "" Or $aTempReadInputs[5] = "" Or $aTempReadInputs[6] = "" Then
 		MsgBox(0, "Error", "You cannot leave a field empty!")
 	ElseIf Not @error Then
 		MsgBox(0, "Error", "Vector's name can not be duplicated!")
 	Else
 		$g_iMAKEListItem += 1
-		ReDim $g_aMAKEList[$g_iMAKEListItem][7]
-		For $i = 0 To UBound($g_aMAKEList, 2) - 1
-			$g_aMAKEList[$g_iMAKEListItem - 1][$i] = GUICtrlRead($g_aMAKEInputs[$i])
+		ReDim $aMAKEList[$g_iMAKEListItem][7]
+		For $i = 0 To UBound($aMAKEList, 2) - 1
+			$aMAKEList[$g_iMAKEListItem - 1][$i] = GUICtrlRead($g_aMAKEInputs[$i])
 		Next
-		ListViewRefresh($g_cMAKEListView, $g_aMAKEList)
+		ListViewRefresh($g_cMAKEListView, $aMAKEList)
 	EndIf
 EndFunc   ;==>AddMAKE
 
@@ -437,10 +421,10 @@ Func DelMAKE()
 	If $iIndex = "" Then
 		MsgBox(0, "Error", "Please select a vector to delete")
 	Else
-		_ArrayDelete($g_aMAKEList, $iIndex)
+		_ArrayDelete($aMAKEList, $iIndex)
 		$g_iMAKEListItem -= 1
-		ReDim $g_aMAKEList[$g_iMAKEListItem][7]
-		ListViewRefresh($g_cMAKEListView, $g_aMAKEList)
+		ReDim $aMAKEList[$g_iMAKEListItem][7]
+		ListViewRefresh($g_cMAKEListView, $aMAKEList)
 	EndIf
 EndFunc   ;==>DelMAKE
 
@@ -469,15 +453,15 @@ Func SelectSavePath()
 		$g_sSaveLocation = $sCurrentSaveLocation
 	EndIf
 	GUICtrlSetData($g_hSavePath, $g_sSaveLocation)
-EndFunc   ;==>SelectSavePath
+EndFunc
 #EndRegion Child GUI Functions
 
 #cs
-	For $r = 0 To UBound($g_aMAKEList) - 1
-	ConsoleWrite("Row " & $r & ": ")
-	For $c = 0 To UBound($g_aMAKEList, 2) - 1
-	ConsoleWrite(" " & $g_aMAKEList[$r][$c] & " ")
-	Next
-	ConsoleWrite(@CRLF)
+	For $r = 0 To UBound($aMAKEList) - 1
+		ConsoleWrite("Row " & $r & ": ")
+		For $c = 0 To UBound($aMAKEList, 2) - 1
+			ConsoleWrite(" " & $aMAKEList[$r][$c] & " ")
+		Next
+		ConsoleWrite(@CRLF)
 	Next
 #ce
