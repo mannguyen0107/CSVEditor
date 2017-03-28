@@ -44,7 +44,7 @@
 
 Global $g_sVersion = "v1.0"
 Global $g_aLMenu[5][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7] ; All global array
-Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath ; All global GUI elements
+Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_aNOTE[1], $g_sSaveLocation ; All global Main GUI elements
 Global $gBtnAddUnderCursor = False, $gBtnDelUnderCursor = False, $g_iMAKEListItem = 0 ; All global variables
 Dim $aMAKEList[1][7]
 
@@ -81,12 +81,12 @@ createHeading("Let's make botting great again!")
 createSubHeading("Before get started please select where you want to save your CSV and make some note about your CSV. For example, putting in your name, your CSV's version or troops, spells and CC troops required.")
 GUICtrlCreatePic(@ScriptDir & "\Images\SaveIcon.jpg", 50, 150, 20, 20)
 $g_hSavePath = GUICtrlCreateInput(@ScriptDir & "\Untitled.csv", 85, 150, 380, 20)
-$hEditSavePath = GUICtrlCreateButton("Edit", 475, 150, 60, 21)
-setBtnStyle($hEditSavePath, 0x767676, 9)
+$g_hEditSavePath = GUICtrlCreateButton("Edit", 475, 150, 60, 21)
+setBtnStyle($g_hEditSavePath, 0x767676, 9)
 GUICtrlSetState($g_hSavePath, $GUI_DISABLE)
 GUICtrlCreateLabel("NOTE", 145, 195, 50, 20)
 GUICtrlSetFont(-1, 12, 500, $GUI_FONTUNDER)
-$g_hNoteEdit = GUICtrlCreateEdit("", 70, 220, 200, 200)
+$g_hNoteEdit = GUICtrlCreateEdit("Author: " & @UserName & " - ver. 1.0" & @CRLF & @CRLF & "Troops: " & @CRLF & "Spells: " & @CRLF & "CC: ", 70, 220, 200, 200)
 GUICtrlCreatePic(@ScriptDir & "\Images\BarbKing.jpg", 300, 190, 277, 250)
 GUISetState(@SW_SHOW, $g_aLMenu[0][1])
 
@@ -162,6 +162,11 @@ While 1
 
 				Case $g_cBtnBack
 					BtnBackPressed()
+			EndSwitch
+		Case $g_aLMenu[0][1]
+			Switch $aGUIMsg[0]
+				Case $g_hEditSavePath
+					SelectSavePath()
 			EndSwitch
 		Case $g_aLMenu[1][1] ; Child GUI SIDE
 			Switch $aGUIMsg[0]
@@ -268,6 +273,11 @@ Func BtnNextPressed()
 		If BitAND(WinGetState($g_aLMenu[$i][1]), 2) Then
 			Switch $i
 				Case 0
+					$sNOTERead = GUICtrlRead($g_hNoteEdit)
+					$aNOTESplit = StringSplit($sNOTERead, @CRLF, 3)
+					ReDim $g_aNOTE[UBound($aNOTESplit)]
+					$g_aNOTE = $aNOTESplit
+				Case 1
 					For $r = 0 To UBound($g_aSIDEItem, 1) - 1
 						If IsChecked($g_aSIDEItem[$r][1]) Then
 							$g_aSIDEItem[$r][2] = GUICtrlRead($g_aSIDEItem[$r][0])
@@ -377,7 +387,7 @@ Func createMAKEInputs($txt, $x, $y, $w, $ar, $field, $list = "")
 	GUICtrlSetFont(-1, 10, 400)
 	Switch $field
 		Case "Input"
-			$g_aMAKEInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20)
+			$g_aMAKEInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20, $ES_UPPERCASE)
 		Case "List"
 			Local $aSplit = StringSplit($list, "|")
 			$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
@@ -392,8 +402,11 @@ Func AddMAKE()
 	For $i = 0 To UBound($aTempReadInputs) - 1
 		$aTempReadInputs[$i] = GUICtrlRead($g_aMAKEInputs[$i])
 	Next
+	Local $iSearchDuplicate = _ArraySearch($aMAKEList, $aTempReadInputs[0], 0, 0, 0, 0, 1, 0)
 	If $aTempReadInputs[0] = "" Or $aTempReadInputs[1] = "" Or $aTempReadInputs[2] = "" Or $aTempReadInputs[3] = "" Or $aTempReadInputs[4] = "" Or $aTempReadInputs[5] = "" Or $aTempReadInputs[6] = "" Then
 		MsgBox(0, "Error", "You cannot leave a field empty!")
+	ElseIf Not @error Then
+		MsgBox(0, "Error", "Vector's name can not be duplicated!")
 	Else
 		$g_iMAKEListItem += 1
 		ReDim $aMAKEList[$g_iMAKEListItem][7]
@@ -433,6 +446,15 @@ Func createSubHeading($txt)
 	GUICtrlSetColor(-1, 0x3D3A39)
 	GUICtrlSetFont(-1, 10, 400)
 EndFunc   ;==>createSubHeading
+
+Func SelectSavePath()
+	$sCurrentSaveLocation = GUICtrlRead($g_hSavePath)
+	$g_sSaveLocation = FileSaveDialog("Save CSV", @ScriptDir, "CSV files (*.csv)", 16)
+	If @error = 1 Then
+		$g_sSaveLocation = $sCurrentSaveLocation
+	EndIf
+	GUICtrlSetData($g_hSavePath, $g_sSaveLocation)
+EndFunc
 #EndRegion Child GUI Functions
 
 #cs
