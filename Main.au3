@@ -18,6 +18,7 @@
 #include <ComboConstants.au3>
 #include <EditConstants.au3>
 #include <FontConstants.au3>
+#include <String.au3>
 
 #cs
 	All array elements detail:
@@ -81,6 +82,7 @@ createHeading("Let's make botting great again!")
 createSubHeading("Before get started please select where you want to save your CSV and make some note about your CSV. For example, putting in your name, your CSV's version or troops, spells and CC troops required.")
 GUICtrlCreatePic(@ScriptDir & "\Images\SaveIcon.jpg", 50, 150, 20, 20)
 $g_hSavePath = GUICtrlCreateInput(@ScriptDir & "\Untitled.csv", 85, 150, 380, 20)
+$g_sSaveLocation = @ScriptDir & "\Untitled.csv"
 $g_hEditSavePath = GUICtrlCreateButton("Edit", 475, 150, 60, 21)
 setBtnStyle($g_hEditSavePath, 0x767676, 9)
 GUICtrlSetState($g_hSavePath, $GUI_DISABLE)
@@ -108,7 +110,7 @@ GUISetState(@SW_SHOW, $g_aLMenu[1][1])
 ;Child GUI (MAKE)
 $g_aLMenu[2][1] = GUICreate("MAKE", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
 createHeading("Making drop points")
-createSubHeading("Now we will be create drop points so that MBR knows where it should drop your troops.")
+createSubHeading("Now we will be creating drop points so that MBR knows where it should drop your troops.")
 ;createListView("MAKE", $g_cMAKEListView, 210)
 $g_cMAKEListView = GUICtrlCreateListView("Vector|Drop Side|Drop Points|Add Tiles|Direction|Random X|Random Y", 20, 90, 550, 210)
 setListViewSize("MAKE", $g_cMAKEListView)
@@ -176,13 +178,13 @@ While 1
 						Sleep(1)
 					EndIf
 
-					;#cs
+					#cs
 					; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
 				Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
 					For $i = 0 To UBound($g_aLMenu, 1) - 2
 						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
 					Next
-					;#ce
+					#ce
 
 				Case $g_cBtnNext
 					BtnNextPressed()
@@ -359,9 +361,17 @@ Func BtnNextPressed()
 					If $g_aMAKEList[0][0] = "" Then
 						MsgBox(16, "Error", "You have to create at least 1 vector. Without vectors MBR will not know where to drop your troops.")
 					Else
+						_ArraySort($g_aMAKEList, 0, 0, 0, 0)
 						For $1 = 0 To UBound($g_aMAKEList) - 1
 							GUICtrlSetData($g_aDROPInputs[0], $g_aMAKEList[$1][0])
 						Next
+						$nSwitch = 1
+					EndIf
+				Case 3
+					If $g_aDROPList[0][0] = "" Then
+						MsgBox(16, "Error", "You have not create any drop informations. Without drop commands MBR will not know which vectors to use and what troops it should drop.")
+					Else
+						CSVGen()
 						$nSwitch = 1
 					EndIf
 			EndSwitch
@@ -598,13 +608,6 @@ Func AddDROP()
 			ListViewRefresh($g_cDROPListView, $g_aDROPList, "DROP")
 		EndIf
 	EndIf
-	For $r = 0 To UBound($g_aDROPList) - 1
-	ConsoleWrite("Row " & $r & ": ")
-	For $c = 0 To UBound($g_aDROPList, 2) - 1
-	ConsoleWrite(" " & $g_aDROPList[$r][$c] & " ")
-	Next
-	ConsoleWrite(@CRLF)
-	Next
 EndFunc   ;==>AddDROP
 
 Func DelDROP()
@@ -618,6 +621,80 @@ Func DelDROP()
 		ListViewRefresh($g_cDROPListView, $g_aDROPList, "DROP")
 	EndIf
 EndFunc   ;==>DelDROP
+
+Func CSVGen()
+	Local $iSpaces = 11, $iGetLength
+	Local $aHeaders[3] = ["      |EXTR. GOLD |EXTR.ELIXIR|EXTR. DARK |DEPO. GOLD |DEPO.ELIXIR|DEPO. DARK |TOWNHALL   |FORCED SIDE|", "      |VECTOR_____|SIDE_______|DROP_POINTS|ADDTILES___|VERSUS_____|RANDOMX_PX_|RANDOMY_PX_|___________|", "      |VECTOR_____|INDEX______|QTY_X_VECT_|TROOPNAME__|DELAY_DROP_|DELAYCHANGE|SLEEPAFTER_|___________|"]
+
+	;Create dictionary to store troops name and troops code to convert normal troops name to MBR troops code (eg: Barbarian = Barb)
+	Local $aTroopsName[34] = ["Barbarian", "Archer", "Giant", "Goblin", "Wall Breaker", "Balloon", "Wizard", "Ice Wizard", "Healer", "Dragon", "Pekka", "Baby Dragon", "Miner", "Minion", "Hog Rider", "Valkyrie", "Golem", "Witch", "Lava Hound", "Bowler", "Barbarian King", "Archer Queen", "Grand Warden", "Clan Castle", "Lightning Spell", "Heal Spell", "Rage Spell", "Jump Spell", "Clone Spell", "Freeze Spell", "Poison Spell", "Earthquake Spell", "Haste Spell", "Skeleton Spell"]
+	Local $aTroopsCode[34] = ["Barb", "Arch", "Giant", "Gobl", "Wall", "Ball", "Wiza", "IceW", "Heal", "Drag", "Pekk", "BabyD", "Mine", "Mini", "Hogs", "Valk", "Gole", "Witc", "Lava", "Bowl", "King", "Queen", "Warden", "Castle", "LSpell", "HSpell", "RSpell", "JSpell", "CSpell", "FSpell", "PSpell", "ESpell", "HaSpell", "SkSp]ell"]
+	Local $aTroopsDic[34]
+	For $1 = 0 To UBound($aTroopsDic) - 1
+		$aTroopsDic[$1] = ObjCreate("Scripting.Dictionary")
+		$aTroopsDic[$1]($aTroopsName[$1]) = $aTroopsCode[$1]
+	Next
+	;For $1 = 0 To UBound($aTroopsDic) - 1
+	;	$aTroopsDic[$1]($aTroopsName[$1]) = $aTroopsCode[$1]
+	;Next
+
+	;Write NOTE
+	For $1 = 0 To UBound($g_aNOTE) - 1
+		FileWrite($g_sSaveLocation, "NOTE  |" & $g_aNOTE[$1] & @CRLF)
+	Next
+	FileWrite($g_sSaveLocation, @CRLF) ;Create a blank line
+
+	;Write SIDE
+	FileWrite($g_sSaveLocation, $aHeaders[0] & @CRLF) ;Write SIDE headers
+	FileWrite($g_sSaveLocation, "SIDE  |")
+	For $1 = 0 To UBound($g_aSIDEItem, 1) - 1
+		If $g_aSIDEItem[$1][2] = "" Then
+			FileWrite($g_sSaveLocation, _StringRepeat(" ", $iSpaces) & "|")
+		Else
+			$iGetLength = StringLen($g_aSIDEItem[$1][2])
+			FileWrite($g_sSaveLocation, $g_aSIDEItem[$1][2] & _StringRepeat(" ", ($iSpaces - $iGetLength)) & "|")
+		EndIf
+	Next
+	FileWrite($g_sSaveLocation, @CRLF & @CRLF) ;Create a blank line
+
+	;Write MAKE
+	FileWrite($g_sSaveLocation, $aHeaders[1] & @CRLF) ;Write MAKE headers
+	For $r = 0 To UBound($g_aMAKEList) - 1
+		FileWrite($g_sSaveLocation, "MAKE  |")
+		For $c = 0 To UBound($g_aMAKEList, 2) - 1
+			$iGetLength = StringLen($g_aMAKEList[$r][$c])
+			If $c = (UBound($g_aMAKEList, 2) - 1) Then
+				FileWrite($g_sSaveLocation, $g_aMAKEList[$r][$c] & _StringRepeat(" ", ($iSpaces - $iGetLength)) & "|" & _StringRepeat(" ", $iSpaces) & "|")
+			Else
+				FileWrite($g_sSaveLocation, $g_aMAKEList[$r][$c] & _StringRepeat(" ", ($iSpaces - $iGetLength)) & "|")
+			EndIf
+		Next
+		FileWrite($g_sSaveLocation, @CRLF)
+	Next
+	FileWrite($g_sSaveLocation, @CRLF & @CRLF) ;Create a blank line
+
+	;Write DROP
+	FileWrite($g_sSaveLocation, $aHeaders[2] & @CRLF) ;Write DROP headers
+	For $r = 0 To UBound($g_aDROPList) - 1
+		FileWrite($g_sSaveLocation, "DROP  |")
+		For $c = 0 To UBound($g_aDROPList, 2) - 1
+			$iGetLength = StringLen($g_aDROPList[$r][$c])
+			If $c = (UBound($g_aDROPList, 2) - 1) Then
+				FileWrite($g_sSaveLocation, $g_aDROPList[$r][$c] & _StringRepeat(" ", ($iSpaces - $iGetLength)) & "|" & _StringRepeat(" ", $iSpaces) & "|")
+			ElseIf $c = 3 Then
+				If $g_aDROPList[$r][0] = "WAIT" Or $g_aDROPList[$r][0] = "RECALC" Then
+					FileWrite($g_sSaveLocation, _StringRepeat(" ", ($iSpaces - $iGetLength)) & "|")
+				Else
+					$iGetLength = StringLen($aTroopsDic[_ArraySearch($aTroopsName, $g_aDROPList[$r][$c])]($g_aDROPList[$r][$c]))
+					FileWrite($g_sSaveLocation, $aTroopsDic[_ArraySearch($aTroopsName, $g_aDROPList[$r][$c])]($g_aDROPList[$r][$c]) & _StringRepeat(" ", ($iSpaces - $iGetLength)) & "|")
+				EndIf
+			Else
+				FileWrite($g_sSaveLocation, $g_aDROPList[$r][$c] & _StringRepeat(" ", ($iSpaces - $iGetLength)) & "|")
+			EndIf
+		Next
+		FileWrite($g_sSaveLocation, @CRLF)
+	Next
+EndFunc   ;==>CSVGen
 #EndRegion Child GUI Functions
 
 #cs
