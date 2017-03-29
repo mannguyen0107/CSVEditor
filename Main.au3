@@ -1,6 +1,6 @@
 ;#AutoIt3Wrapper_Change2CUI=y
 ;#pragma compile(Console, true)
-#pragma compile(Icon, "Images\csveditor.ico")
+#pragma compile(Icon, "Images\csvedit.ico")
 #pragma compile(FileDescription, MBR CSV Editor - https://mybot.run)
 #pragma compile(ProductName, CSV Editor)
 #pragma compile(ProductVersion, 1.0)
