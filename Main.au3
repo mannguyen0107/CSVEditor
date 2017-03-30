@@ -20,6 +20,8 @@
 #include <FontConstants.au3>
 #include <String.au3>
 
+;Opt("MustDeclareVars", 1)
+
 #cs
 	All array elements detail:
 	$g_aLMenu[4][2] - This array contain the left menu labels and child GUI that go with it
@@ -45,9 +47,11 @@
 
 Global $g_sVersion = "v1.0"
 Global $g_aLMenu[5][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7], $g_aDROPInputs[9], $g_aDROPCommand[2] ; All global array
-Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_aNOTE[1], $g_sSaveLocation, $g_cDROPListView, $g_cDROPBtnAdd, $g_cDROPBtnDel ; All global Main GUI elements
+Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_sSaveLocation, $g_cDROPListView, $g_cDROPBtnAdd, $g_cDROPBtnDel, $g_hDROPCommandCheck ; All global Main GUI elements
 Global $gBtnAddUnderCursor = False, $gBtnDelUnderCursor = False, $g_iMAKEListItem = 0, $g_iDROPListItem = 0 ; All global variables
-Dim $g_aMAKEList[1][7], $g_aDROPList[1][7]
+Dim $g_aMAKEList[1][7], $g_aDROPList[1][7], $g_aNOTE[1]
+
+Local $cLMenuBG, $cBMenuBG
 
 #Region GUI Design
 $g_hMainFrm = GUICreate("CSV Editor - " & $g_sVersion, 800, 500, -1, -1)
@@ -147,7 +151,7 @@ GUICtrlSetFont(-1, 10, 400)
 $g_aDROPInputs[7] = GUICtrlCreateCombo("", 380, 410, 60, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
 GUICtrlSetData($g_aDROPInputs[7], "WAIT|RECALC")
 $g_aDROPInputs[8] = GUICtrlCreateInput("", 450, 410, 50, 20)
-$g_hDROPCommand = GUICtrlCreateCheckbox("", 510, 410, 20, 20)
+$g_hDROPCommandCheck = GUICtrlCreateCheckbox("", 510, 410, 20, 20)
 GUICtrlSetState($g_aDROPInputs[7], $GUI_DISABLE)
 GUICtrlSetState($g_aDROPInputs[8], $GUI_DISABLE)
 $g_cDROPBtnAdd = GUICtrlCreatePic("", 530, 330, 0, 0)
@@ -235,12 +239,12 @@ While 1
 		Case $g_aLMenu[3][1] ; Child GUI DROP
 			If Not @error Then
 				Select
-					Case $aGUIMsg[0] = $g_hDROPCommand
+					Case $aGUIMsg[0] = $g_hDROPCommandCheck
 						For $1 = 0 To UBound($g_aDROPInputs) - 1
 							If $1 = 7 Or $1 = 8 Then
-								_Enable($g_hDROPCommand, $g_aDROPInputs[$1])
+								_Enable($g_hDROPCommandCheck, $g_aDROPInputs[$1])
 							Else
-								_Disable($g_hDROPCommand, $g_aDROPInputs[$1])
+								_Disable($g_hDROPCommandCheck, $g_aDROPInputs[$1])
 							EndIf
 						Next
 
@@ -556,7 +560,7 @@ Func SelectSavePath()
 EndFunc   ;==>SelectSavePath
 
 Func AddDROP()
-	If IsChecked($g_hDROPCommand) Then
+	If IsChecked($g_hDROPCommandCheck) Then
 		Local $aTempReadInputs[2]
 		$aTempReadInputs[0] = GUICtrlRead($g_aDROPInputs[7])
 		$aTempReadInputs[1] = GUICtrlRead($g_aDROPInputs[8])
