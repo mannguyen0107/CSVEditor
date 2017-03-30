@@ -144,7 +144,7 @@ createVectorInputs("Delay Change", 280, 350, 100, 5, "Input", "DROP")
 createVectorInputs("Sleep After", 280, 380, 100, 6, "Input", "DROP")
 GUICtrlCreateLabel("Command:", 280, 410, 100, 20)
 GUICtrlSetFont(-1, 10, 400)
-$g_aDROPInputs[7] = GUICtrlCreateCombo("", 380, 410, 60, 20, $CBS_DROPDOWNLIST)
+$g_aDROPInputs[7] = GUICtrlCreateCombo("", 380, 410, 60, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
 GUICtrlSetData($g_aDROPInputs[7], "WAIT|RECALC")
 $g_aDROPInputs[8] = GUICtrlCreateInput("", 450, 410, 50, 20)
 $g_hDROPCommand = GUICtrlCreateCheckbox("", 510, 410, 20, 20)
@@ -179,11 +179,11 @@ While 1
 					EndIf
 
 					#cs
-					; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
-				Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
-					For $i = 0 To UBound($g_aLMenu, 1) - 2
+						; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
+						Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
+						For $i = 0 To UBound($g_aLMenu, 1) - 2
 						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
-					Next
+						Next
 					#ce
 
 				Case $g_cBtnNext
@@ -429,7 +429,7 @@ Func createSIDEInputs($img, $s, $x, $y, $ar)
 	GUICtrlCreatePic(@ScriptDir & "\Images\" & $img, $x, $y, 50, 50)
 	GUICtrlCreateLabel($s & ":", $x + 60, $y + 10, 100, 15)
 	If $ar = 7 Then
-		$g_aSIDEItem[$ar][0] = GUICtrlCreateCombo("", $x + 60, $y + 25, 100, 20, $CBS_DROPDOWNLIST)
+		$g_aSIDEItem[$ar][0] = GUICtrlCreateCombo("", $x + 60, $y + 25, 100, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
 		GUICtrlSetData($g_aSIDEItem[$ar][0], "RANDOM|TOP-LEFT|TOP-RIGHT|BOTTOM-LEFT|BOTTOM-RIGHT")
 	Else
 		$g_aSIDEItem[$ar][0] = GUICtrlCreateInput("", $x + 60, $y + 25, 100, 20)
@@ -481,18 +481,15 @@ Func createVectorInputs($txt, $x, $y, $w, $ar, $field, $GUIname, $list = "")
 					$g_aDROPInputs[$ar] = GUICtrlCreateInput("", $x + $w, $y, 120, 20, $ES_UPPERCASE)
 			EndSwitch
 		Case "List"
-			Local $aSplit = StringSplit($list, "|")
 			Switch $GUIname
 				Case "MAKE"
-					$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
-					For $i = 1 To $aSplit[0]
-						GUICtrlSetData($g_aMAKEInputs[$ar], $aSplit[$i])
-					Next
+					$g_aMAKEInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
+					GUICtrlSetData($g_aMAKEInputs[$ar], $list)
+					GUICtrlSendMsg($g_aMAKEInputs[$ar], $CB_SETMINVISIBLE, 10, 0)
 				Case "DROP"
-					$g_aDROPInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, $CBS_DROPDOWNLIST)
-					For $i = 1 To $aSplit[0]
-						GUICtrlSetData($g_aDROPInputs[$ar], $aSplit[$i])
-					Next
+					$g_aDROPInputs[$ar] = GUICtrlCreateCombo("", $x + $w, $y, 120, 20, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_DROPDOWNLIST))
+					GUICtrlSetData($g_aDROPInputs[$ar], $list)
+					GUICtrlSendMsg($g_aDROPInputs[$ar], $CB_SETMINVISIBLE, 10, 0)
 			EndSwitch
 	EndSwitch
 EndFunc   ;==>createVectorInputs
