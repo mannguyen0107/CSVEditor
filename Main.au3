@@ -19,6 +19,8 @@
 #include <EditConstants.au3>
 #include <FontConstants.au3>
 #include <String.au3>
+#include <ProgressConstants.au3>
+#include <GuiRichEdit.au3>
 
 ;Opt("MustDeclareVars", 1)
 
@@ -47,7 +49,7 @@
 
 Global $g_sVersion = "v1.0"
 Global $g_aLMenu[5][2], $g_aSIDEItem[8][3], $g_aMAKEInputs[7], $g_aDROPInputs[9], $g_aDROPCommand[2] ; All global array
-Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_sSaveLocation, $g_cDROPListView, $g_cDROPBtnAdd, $g_cDROPBtnDel, $g_hDROPCommandCheck ; All global Main GUI elements
+Global $g_hMainFrm, $g_cBtnNext, $g_cBtnBack, $g_cMAKEListView, $g_cMAKEBtnAdd, $g_cMAKEBtnDel, $g_hNoteEdit, $g_hSavePath, $g_hEditSavePath, $g_sSaveLocation, $g_cDROPListView, $g_cDROPBtnAdd, $g_cDROPBtnDel, $g_hDROPCommandCheck, $g_idCSVProgress, $g_hProgressLog, $g_hProgressTxt ; All global Main GUI elements
 Global $gBtnAddUnderCursor = False, $gBtnDelUnderCursor = False, $g_iMAKEListItem = 0, $g_iDROPListItem = 0 ; All global variables
 Dim $g_aMAKEList[1][7], $g_aDROPList[1][7], $g_aNOTE[1]
 
@@ -55,11 +57,9 @@ Local $cLMenuBG, $cBMenuBG
 
 #Region GUI Design
 $g_hMainFrm = GUICreate("CSV Editor - " & $g_sVersion, 800, 500, -1, -1)
+GUISetBkColor($COLOR_WHITE, $g_hMainFrm)
 
 ;Left Menu
-$cLMenuBG = GUICtrlCreateLabel("", 0, 0, 210, 500)
-GUICtrlSetBkColor($cLMenuBG, $COLOR_WHITE)
-GUICtrlSetState($cLMenuBG, $GUI_DISABLE)
 GUICtrlCreatePic(@ScriptDir & "\Images\Logo.jpg", 5, 10, 200, 100)
 $g_aLMenu[0][0] = GUICtrlCreateLabel("Welcome", 0, 180, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
 $g_aLMenu[1][0] = GUICtrlCreateLabel("Deciding Attack Side", 0, 220, 210, 30, BitOR($SS_CENTER, $SS_CENTERIMAGE))
@@ -70,9 +70,6 @@ setLMenuFontStyle($g_aLMenu)
 addVerticalSeparator(210, 0, 500, "0x999999")
 
 ;BottomMenu
-$cBMenuBG = GUICtrlCreateLabel("", 211, 450, 589, 50)
-GUICtrlSetBkColor($cBMenuBG, $COLOR_WHITE)
-GUICtrlSetState($cBMenuBG, $GUI_DISABLE)
 $g_cBtnNext = GUICtrlCreateButton("Next >", 680, 460, 100, 30)
 setBtnStyle($g_cBtnNext, 0x767676, 10)
 $g_cBtnBack = GUICtrlCreateButton("< Back", 550, 460, 100, 30)
@@ -139,7 +136,7 @@ createSubHeading("From all of the vectors we have just created you can use them 
 $g_cDROPListView = GUICtrlCreateListView("Vector|Index|Drop Quantity|Troop Name|Delay Drop|Delay Change|Sleep After", 20, 90, 550, 210)
 setListViewSize("DROP", $g_cDROPListView)
 ControlDisable($g_aLMenu[3][1], "", HWnd(_GUICtrlListView_GetHeader($g_cDROPListView)))
-createVectorInputs("Vector Name", 20, 320, 85, 0, "List", "DROP")
+createVectorInputs("Vector Name", 20, 320, 85, 0, "Input", "DROP")
 createVectorInputs("Drop Index", 20, 350, 85, 1, "Input", "DROP")
 createVectorInputs("Drop Quantity", 20, 380, 85, 2, "Input", "DROP")
 createVectorInputs("Troop Name", 20, 410, 85, 3, "List", "DROP", "Barbarian|Archer|Giant|Goblin|Wall Breaker|Balloon|Wizard|Ice Wizard|Healer|Dragon|Pekka|Baby Dragon|Miner|Minion|Hog Rider|Valkyrie|Golem|Witch|Lava Hound|Bowler|Barbarian King|Archer Queen|Grand Warden|Clan Castle|Lightning Spell|Heal Spell|Rage Spell|Jump Spell|Clone Spell|Freeze Spell|Poison Spell|Earthquake Spell|Haste Spell|Skeleton Spell")
@@ -162,6 +159,12 @@ GUISetState(@SW_SHOW, $g_aLMenu[3][1])
 
 ;Child GUI (CSV Generating)
 $g_aLMenu[4][1] = GUICreate("CSVGEN", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
+createHeading("Generating CSV")
+createSubHeading("Now just sit back and relax. Your CSV will be ready in a moment!")
+$g_hProgressTxt = GUICtrlCreateLabel("Writing CSV file...", 30, 100, 100, 20)
+GUICtrlSetFont(-1, 9, 400)
+$g_idCSVProgress = GUICtrlCreateProgress(30, 130, 530, 25)
+$g_hProgressLog = _GUICtrlRichEdit_Create($g_aLMenu[4][1], "", 30, 170, 530, 250, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL, $ES_AUTOVSCROLL))
 GUISetState(@SW_SHOW, $g_aLMenu[4][1])
 
 LMenuCheck(True, 0)
@@ -184,8 +187,8 @@ While 1
 
 					#cs
 						; Checking if user click on one of the Left Menu label --> enable respective child GUI | exclude last label
-						Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 2][0]
-						For $i = 0 To UBound($g_aLMenu, 1) - 2
+						Case $g_aLMenu[0][0] To $g_aLMenu[UBound($g_aLMenu, 1) - 1][0]
+						For $i = 0 To UBound($g_aLMenu, 1) - 1
 						If $aGUIMsg[0] = $g_aLMenu[$i][0] Then SwitchChildGUI($i)
 						Next
 					#ce
@@ -365,18 +368,14 @@ Func BtnNextPressed()
 					If $g_aMAKEList[0][0] = "" Then
 						MsgBox(16, "Error", "You have to create at least 1 vector. Without vectors MBR will not know where to drop your troops.")
 					Else
-						_ArraySort($g_aMAKEList, 0, 0, 0, 0)
-						For $1 = 0 To UBound($g_aMAKEList) - 1
-							GUICtrlSetData($g_aDROPInputs[0], $g_aMAKEList[$1][0])
-						Next
 						$nSwitch = 1
 					EndIf
 				Case 3
 					If $g_aDROPList[0][0] = "" Then
 						MsgBox(16, "Error", "You have not create any drop informations. Without drop commands MBR will not know which vectors to use and what troops it should drop.")
 					Else
+						SwitchChildGUI($i + 1)
 						CSVGen()
-						$nSwitch = 1
 					EndIf
 			EndSwitch
 			If $nSwitch Then
