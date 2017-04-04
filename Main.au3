@@ -161,7 +161,7 @@ GUISetState(@SW_SHOW, $g_aLMenu[3][1])
 $g_aLMenu[4][1] = GUICreate("CSVGEN", 589, 450, 211, 0, $WS_POPUP, $WS_EX_MDICHILD, $g_hMainFrm)
 createHeading("Generating CSV")
 createSubHeading("Now just sit back and relax. Your CSV will be ready in a moment!")
-$g_hProgressTxt = GUICtrlCreateLabel("Writing CSV file...", 30, 100, 100, 20)
+$g_hProgressTxt = GUICtrlCreateLabel("Writing CSV file...", 30, 100, 160, 20)
 GUICtrlSetFont(-1, 9, 400)
 $g_idCSVProgress = GUICtrlCreateProgress(30, 130, 530, 25)
 $g_hProgressLog = _GUICtrlRichEdit_Create($g_aLMenu[4][1], "", 30, 170, 530, 250, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL, $ES_AUTOVSCROLL))
@@ -623,6 +623,8 @@ Func DelDROP()
 EndFunc   ;==>DelDROP
 
 Func CSVGen()
+	Local $iFileExists = FileExists($g_sSaveLocation)
+	If $iFileExists Then FileDelete($g_sSaveLocation)
 	Local $iSpaces = 11, $iGetLength
 	Local $aHeaders[3] = ["      |EXTR. GOLD |EXTR.ELIXIR|EXTR. DARK |DEPO. GOLD |DEPO.ELIXIR|DEPO. DARK |TOWNHALL   |FORCED SIDE|", "      |VECTOR_____|SIDE_______|DROP_POINTS|ADDTILES___|VERSUS_____|RANDOMX_PX_|RANDOMY_PX_|___________|", "      |VECTOR_____|INDEX______|QTY_X_VECT_|TROOPNAME__|DELAY_DROP_|DELAYCHANGE|SLEEPAFTER_|___________|"]
 
@@ -634,19 +636,25 @@ Func CSVGen()
 		$aTroopsDic[$1] = ObjCreate("Scripting.Dictionary")
 		$aTroopsDic[$1]($aTroopsName[$1]) = $aTroopsCode[$1]
 	Next
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Converting troops name into MBR troops code..." & @CRLF)
+	GUICtrlSetData($g_idCSVProgress, 25)
 	;For $1 = 0 To UBound($aTroopsDic) - 1
 	;	$aTroopsDic[$1]($aTroopsName[$1]) = $aTroopsCode[$1]
 	;Next
 
 	;Write NOTE
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing NOTE section..." & @CRLF)
 	For $1 = 0 To UBound($g_aNOTE) - 1
 		FileWrite($g_sSaveLocation, "NOTE  |" & $g_aNOTE[$1] & @CRLF)
+		GUICtrlSetData($g_idCSVProgress, 1)
 	Next
 	FileWrite($g_sSaveLocation, @CRLF) ;Create a blank line
 
 	;Write SIDE
 	FileWrite($g_sSaveLocation, $aHeaders[0] & @CRLF) ;Write SIDE headers
 	FileWrite($g_sSaveLocation, "SIDE  |")
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing SIDE section..." & @CRLF)
+	GUICtrlSetData($g_idCSVProgress, 25)
 	For $1 = 0 To UBound($g_aSIDEItem, 1) - 1
 		If $g_aSIDEItem[$1][2] = "" Then
 			FileWrite($g_sSaveLocation, _StringRepeat(" ", $iSpaces) & "|")
@@ -659,6 +667,8 @@ Func CSVGen()
 
 	;Write MAKE
 	FileWrite($g_sSaveLocation, $aHeaders[1] & @CRLF) ;Write MAKE headers
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing MAKE section..." & @CRLF)
+	GUICtrlSetData($g_idCSVProgress, 25)
 	For $r = 0 To UBound($g_aMAKEList) - 1
 		FileWrite($g_sSaveLocation, "MAKE  |")
 		For $c = 0 To UBound($g_aMAKEList, 2) - 1
@@ -670,11 +680,15 @@ Func CSVGen()
 			EndIf
 		Next
 		FileWrite($g_sSaveLocation, @CRLF)
+		GUICtrlSetData($g_idCSVProgress, 1)
 	Next
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "	" & UBound($g_aMAKEList) & " vectors were created" & @CRLF)
 	FileWrite($g_sSaveLocation, @CRLF & @CRLF) ;Create a blank line
 
 	;Write DROP
 	FileWrite($g_sSaveLocation, $aHeaders[2] & @CRLF) ;Write DROP headers
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing DROP section..." & @CRLF)
+	GUICtrlSetData($g_idCSVProgress, 25)
 	For $r = 0 To UBound($g_aDROPList) - 1
 		FileWrite($g_sSaveLocation, "DROP  |")
 		For $c = 0 To UBound($g_aDROPList, 2) - 1
@@ -694,6 +708,10 @@ Func CSVGen()
 		Next
 		FileWrite($g_sSaveLocation, @CRLF)
 	Next
+
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Finished" & @CRLF)
+	GUICtrlSetData($g_hProgressTxt, "CSV ready to be used!")
+	GUICtrlSetData($g_idCSVProgress, 100)
 EndFunc   ;==>CSVGen
 #EndRegion Child GUI Functions
 
