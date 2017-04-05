@@ -630,14 +630,14 @@ Func CSVGen()
 
 	;Create dictionary to store troops name and troops code to convert normal troops name to MBR troops code (eg: Barbarian = Barb)
 	Local $aTroopsName[34] = ["Barbarian", "Archer", "Giant", "Goblin", "Wall Breaker", "Balloon", "Wizard", "Ice Wizard", "Healer", "Dragon", "Pekka", "Baby Dragon", "Miner", "Minion", "Hog Rider", "Valkyrie", "Golem", "Witch", "Lava Hound", "Bowler", "Barbarian King", "Archer Queen", "Grand Warden", "Clan Castle", "Lightning Spell", "Heal Spell", "Rage Spell", "Jump Spell", "Clone Spell", "Freeze Spell", "Poison Spell", "Earthquake Spell", "Haste Spell", "Skeleton Spell"]
-	Local $aTroopsCode[34] = ["Barb", "Arch", "Giant", "Gobl", "Wall", "Ball", "Wiza", "IceW", "Heal", "Drag", "Pekk", "BabyD", "Mine", "Mini", "Hogs", "Valk", "Gole", "Witc", "Lava", "Bowl", "King", "Queen", "Warden", "Castle", "LSpell", "HSpell", "RSpell", "JSpell", "CSpell", "FSpell", "PSpell", "ESpell", "HaSpell", "SkSp]ell"]
+	Local $aTroopsCode[34] = ["Barb", "Arch", "Giant", "Gobl", "Wall", "Ball", "Wiza", "IceW", "Heal", "Drag", "Pekk", "BabyD", "Mine", "Mini", "Hogs", "Valk", "Gole", "Witc", "Lava", "Bowl", "King", "Queen", "Warden", "Castle", "LSpell", "HSpell", "RSpell", "JSpell", "CSpell", "FSpell", "PSpell", "ESpell", "HaSpell", "SkSpell"]
 	Local $aTroopsDic[34]
 	For $1 = 0 To UBound($aTroopsDic) - 1
 		$aTroopsDic[$1] = ObjCreate("Scripting.Dictionary")
 		$aTroopsDic[$1]($aTroopsName[$1]) = $aTroopsCode[$1]
 	Next
-	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Converting troops name into MBR troops code..." & @CRLF)
 	GUICtrlSetData($g_idCSVProgress, 25)
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Converting troops name into MBR troops code..." & @CRLF)
 	;For $1 = 0 To UBound($aTroopsDic) - 1
 	;	$aTroopsDic[$1]($aTroopsName[$1]) = $aTroopsCode[$1]
 	;Next
@@ -653,8 +653,8 @@ Func CSVGen()
 	;Write SIDE
 	FileWrite($g_sSaveLocation, $aHeaders[0] & @CRLF) ;Write SIDE headers
 	FileWrite($g_sSaveLocation, "SIDE  |")
-	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing SIDE section..." & @CRLF)
 	GUICtrlSetData($g_idCSVProgress, 25)
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing SIDE section..." & @CRLF)
 	For $1 = 0 To UBound($g_aSIDEItem, 1) - 1
 		If $g_aSIDEItem[$1][2] = "" Then
 			FileWrite($g_sSaveLocation, _StringRepeat(" ", $iSpaces) & "|")
@@ -667,8 +667,8 @@ Func CSVGen()
 
 	;Write MAKE
 	FileWrite($g_sSaveLocation, $aHeaders[1] & @CRLF) ;Write MAKE headers
-	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing MAKE section..." & @CRLF)
 	GUICtrlSetData($g_idCSVProgress, 25)
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing MAKE section..." & @CRLF)
 	For $r = 0 To UBound($g_aMAKEList) - 1
 		FileWrite($g_sSaveLocation, "MAKE  |")
 		For $c = 0 To UBound($g_aMAKEList, 2) - 1
@@ -687,8 +687,8 @@ Func CSVGen()
 
 	;Write DROP
 	FileWrite($g_sSaveLocation, $aHeaders[2] & @CRLF) ;Write DROP headers
-	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing DROP section..." & @CRLF)
 	GUICtrlSetData($g_idCSVProgress, 25)
+	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Writing DROP section..." & @CRLF)
 	For $r = 0 To UBound($g_aDROPList) - 1
 		FileWrite($g_sSaveLocation, "DROP  |")
 		For $c = 0 To UBound($g_aDROPList, 2) - 1
@@ -709,9 +709,9 @@ Func CSVGen()
 		FileWrite($g_sSaveLocation, @CRLF)
 	Next
 
+	GUICtrlSetData($g_idCSVProgress, 100)
 	_GUICtrlRichEdit_AppendText($g_hProgressLog, "Finished" & @CRLF)
 	GUICtrlSetData($g_hProgressTxt, "CSV ready to be used!")
-	GUICtrlSetData($g_idCSVProgress, 100)
 EndFunc   ;==>CSVGen
 #EndRegion Child GUI Functions
 
